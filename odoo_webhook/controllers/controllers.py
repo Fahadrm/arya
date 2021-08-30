@@ -9,7 +9,7 @@ _logger = logging.getLogger(__name__)
 class WebhookController(http.Controller):
     @http.route('/webhook/products', type='json', auth='public', methods=['POST'])
     def webhook(self, **post):
-        header_info = request.httprequest.headers
+        header_info = request.httprequest.headers[0]
         _logger.info('RESPONSE RECEIVED FROM YELO IS %r', header_info)
         # print('post_data', post)
         # yelo_product = request.env["yelo.products"].sudo().search(
