@@ -34,7 +34,7 @@ class YeloOrders(models.Model):
             webhook = self.env["configure.webhook"].search([], limit=1)
             url = webhook.request_url
             api_key = webhook.api_key
-            payload = "{\r\n    \"api_key\"   : {} ,\r\n    \"job_id\"    : {}\r\n}".format(api_key, record.yelo_order_id)
+            payload = "{\r\n    \"api_key\"   : %s ,\r\n    \"job_id\"    : %d \r\n}" % (api_key, record.yelo_order_id)
             headers = {}
 
             response = requests.request("POST", url, headers=headers, data=payload)
