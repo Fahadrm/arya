@@ -10,6 +10,10 @@
                             <field name="name"/>
                             <field name="webhook_auth_key"/>
                         </group>
+                        <group>
+                            <field name="request_url"/>
+                            <field name="api_key"/>
+                        </group>
                     </group>
                 </form>
             </field>
@@ -23,6 +27,8 @@
                 <tree>
                     <field name="name"/>
                     <field name="webhook_auth_key"/>
+                    <field name="request_url"/>
+                    <field name="api_key"/>
                 </tree>
             </field>
         </record>

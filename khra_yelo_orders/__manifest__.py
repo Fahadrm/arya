@@ -26,6 +26,7 @@
         'security/ir.model.access.csv',
         'views/views.xml',
         'views/configure_webhook_view.xml',
+        'data/order_sync_cron.xml',
         'views/templates.xml',
     ],
     # only loaded in demonstration mode
