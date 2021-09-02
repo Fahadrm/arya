@@ -18,7 +18,7 @@ class WebhookController(http.Controller):
             request.env["yelo.orders"].sudo().create({
                 'yelo_order_id': request.jsonrequest['order_id'],
                 'yelo_customer_id': request.jsonrequest['customer_id'],
-                'yelo_restaurant_id': request.jsonrequest['merchant_id_id'],
+                'yelo_restaurant_id': request.jsonrequest['merchant_id'],
                 'yelo_order_type': 'pickup' if request.jsonrequest['job_type'] == 0 else 'delivery',
             })
         else:
