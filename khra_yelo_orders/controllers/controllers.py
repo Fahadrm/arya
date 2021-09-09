@@ -14,14 +14,14 @@ class WebhookController(http.Controller):
         if auth_key and header_info.environ.get('HTTP_X_YELO_TOKEN') and auth_key == header_info.environ.get('HTTP_X_YELO_TOKEN'):
             _logger.info('The webhook signatures match!')
             _logger.info('RESPONSE RECEIVED FROM YELO when an order placed %r', request.jsonrequest)
-
-            request.env["yelo.orders"].sudo().create({
-                'yelo_order_id': request.jsonrequest['job_id'],
-                'yelo_customer_id': request.jsonrequest['customer_id'],
-                'yelo_restaurant_id': request.jsonrequest['merchant_id'],
-                'yelo_order_type': 'pickup' if request.jsonrequest['job_type'] == 0 else 'delivery',
-                'yelo_order_status': request.jsonrequest['job_status'],
-            })
+            if request.jsonrequest['job_status'] == 13:
+                request.env["yelo.orders"].sudo().create({
+                    'yelo_order_id': request.jsonrequest['job_id'],
+                    'yelo_customer_id': request.jsonrequest['customer_id'],
+                    'yelo_restaurant_id': request.jsonrequest['merchant_id'],
+                    'yelo_order_type': 'pickup' if request.jsonrequest['job_type'] == 0 else 'delivery',
+                    'yelo_order_status': request.jsonrequest['job_status'],
+                })
         else:
             _logger.info('Warning: the webhook signatures do not match!')
         return {}
