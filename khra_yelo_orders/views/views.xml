@@ -4,7 +4,7 @@
             <field name="name">Yelo Order Form</field>
             <field name="model">yelo.orders</field>
             <field name="arch" type="xml">
-                <form >
+                <form edit="0" create="0">
                     <group>
                         <group>
                             <field name="yelo_order_id"/>
@@ -30,7 +30,7 @@
             <field name="name">Yelo Order List</field>
             <field name="model">yelo.orders</field>
             <field name="arch" type="xml">
-                <tree >
+                <tree edit="0" create="0">
                     <field name="yelo_order_id"/>
                     <field name="yelo_customer_id"/>
                     <field name="yelo_restaurant_id"/>
