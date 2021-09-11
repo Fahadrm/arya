@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 import requests
 import logging
 import json
@@ -47,9 +47,11 @@ class YeloOrders(models.Model):
             # response = requests.request("POST", url, headers=headers, data=payload)
             # _logger.info('RESPONSE RECEIVED FROM YELO when an order placed %r', response.text)
 
-            headers = {"Content-Type": "application/json"}
-            response = requests.post(url, data=json.dumps(todo), headers=headers)
-            data_received = response.json()
+            headers = {"Content-type": "application/json",
+                       'Accept': 'text/plain'}
+            req = requests.post(url, data=json.dumps(todo), headers=headers)
+            req.raise_for_status()
+            data_received = req.json()
             # for data in data_received['data']:
             #     restaurant = self.env['res.partner'].search([('yelo_restaurant_id', '=', data['merchant_id']), ('partner_type', '=', "restaurant")])
             #     customer = self.env['res.partner'].search([('yelo_customer_id', '=', data['customer_id']), ('partner_type', '=', "customer")])
@@ -90,7 +92,7 @@ class YeloOrders(models.Model):
             #             })
             #     delivery_charge_tax = self.env.company.account_delivery_charge_tax_id.compute_all(data['delivery_charge'], quantity=1)
             #     surge_tax = self.env.company.account_delivery_charge_tax_id.compute_all(data['delivery_charge_surge_amount'], quantity=1)
-
+            #
             #     new_date = datetime.datetime.strptime(data['job_time'], "%Y-%m-%dT%H:%M:%S.%fZ")
             #     move_date = new_date.date()
             #     first_entry_move = self.env['account.move'].create({
