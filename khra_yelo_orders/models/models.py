@@ -354,4 +354,4 @@ class YeloOrders(models.Model):
             # record.update({
             #     'sync_status': True
             # })
-            _logger.info('RESPONSE RECEIVED FROM YELO when an order placed %r', data_received['data'])
+            _logger.info('RESPONSE RECEIVED FROM YELO DURING API CALL - GET ORDER DETAILS %r', data_received['data'])
