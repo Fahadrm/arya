@@ -4,6 +4,12 @@ from odoo import models, fields, api
 import datetime
 
 
+class ResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    restaurant_commission = fields.Float(string="Commission", digits='Product Price')
+
+
 class RestaurantPaymentBatch(models.Model):
     _name = 'restaurant.payment.batch'
     _description = 'Restaurant payment batch'
