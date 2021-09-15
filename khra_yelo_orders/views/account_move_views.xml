@@ -8,6 +8,9 @@
                 <field name="payment_reference" position="before">
                     <field name="yelo_order_id" attrs="{'invisible':[('move_type', 'in', ('in_invoice', 'in_receipt', 'in_refund', 'out_invoice', 'out_refund'))]}"/>
                 </field>
+                <xpath expr="//page[@id='aml_tab']/field[@name='line_ids']/tree/field[@name='credit']" position="after">
+                    <field name="restaurant_cost_type" invisible="1"/>
+                </xpath>
             </field>
         </record>
 
