@@ -22,7 +22,6 @@ class YeloOrders(models.Model):
         ('pickup', 'Pickup'),
         ('delivery', 'Delivery'),
     ], string="Order Type")
-    yelo_order_date = fields.Date(string='Order Date', index=True)
     sync_status = fields.Boolean(string='Sync status', default=False)
     function_1_status = fields.Boolean(string='F1 status', default=False)
     function_2_status = fields.Boolean(string='F2 status', default=False)
@@ -269,7 +268,6 @@ class YeloOrders(models.Model):
                              'debit': 0,
                              'credit': data['order_amount'],
                              'currency_id': self.env.company.currency_id.id,
-                             'restaurant_cost_type': 'food_cost',
                              'partner_id': restaurant.id,
                          }),
                         (0, 0,
@@ -347,7 +345,6 @@ class YeloOrders(models.Model):
                              'name': restaurant.name + " A/c)",
                              'debit': 0,
                              'credit': data['tax'],
-                             'restaurant_cost_type': 'gst',
                              'currency_id': self.env.company.currency_id.id,
                              'partner_id': restaurant.id,
                          })
