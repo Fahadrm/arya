@@ -18,7 +18,7 @@ class ResPartner(models.Model):
         ('silver', 'Silver'),
         ('gold', 'Gold'),
         ('platinum', 'Platinum'),
-    ], string="Restaurant Type", )
+    ], string="Restaurant Type", default='silver' )
     restaurant_commission = fields.Float(string="Commission", digits='Product Price')
     # account_properties_partner_type = fields.Boolean('Setting properties',
     #                                                  # compute='_compute_property_values'
