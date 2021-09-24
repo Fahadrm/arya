@@ -28,11 +28,10 @@ class RestaurantPaymentBatch(models.Model):
 
     @api.model
     def _sync_restaurant_payments(self):
-        date = datetime.datetime.today().date() 
-#         - datetime.timedelta(days=1)
+        date = datetime.datetime.today().date() - datetime.timedelta(days=1)
         move_line_ids = self.env['account.move.line'].search([('partner_id', '!=', False),
             ('move_id.journal_id', '=', self.env.company.yelo_third_entry_journal_id.id),
-            ('date', '<=', date), ('account_id', '=', self.env.company.restaurant_receivable_account_id.id),
+            ('date', '=', date), ('account_id', '=', self.env.company.restaurant_receivable_account_id.id),
             ('restaurant_cost_type', '!=', False), ('move_id.reversed_entry_id', '=', False)])
         if move_line_ids:
             batch_id = self.create({
@@ -58,7 +57,7 @@ class RestaurantPaymentBatch(models.Model):
             move_line_ids = self.env['account.move.line'].search([('partner_id', '=', key),
                                                                   ('move_id.reversed_entry_id.journal_id', '=',
                                                                    self.env.company.yelo_third_entry_journal_id.id),
-                                                                  ('date', '<=', date), ('account_id', '=',
+                                                                  ('date', '=', date), ('account_id', '=',
                                                                                         self.env.company.restaurant_receivable_account_id.id),
                                                                   ('restaurant_cost_type', '!=', False)])
             for line in move_line_ids:
