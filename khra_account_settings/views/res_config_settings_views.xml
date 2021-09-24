@@ -332,7 +332,7 @@
                                 </div>
                             </div>
                         </div>
-<!--                         <div class="col-12 col-lg-6 o_setting_box"
+                        <div class="col-12 col-lg-6 o_setting_box"
                              id="yelo_commission_tcs_tax">
                             <div class="o_setting_left_pane"/>
                             <div class="o_setting_right_pane">
@@ -347,8 +347,8 @@
 
                                 </div>
                             </div>
-                        </div> -->
-<!--                         <div class="col-12 col-lg-6 o_setting_box"
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box"
                              id="yelo_commission_tds_tax">
                             <div class="o_setting_left_pane"/>
                             <div class="o_setting_right_pane">
@@ -363,8 +363,8 @@
 
                                 </div>
                             </div>
-                        </div> -->
-<!--                         <div class="col-12 col-lg-6 o_setting_box"
+                        </div>
+                        <div class="col-12 col-lg-6 o_setting_box"
                              id="yelo_commission_tax">
                             <div class="o_setting_left_pane"/>
                             <div class="o_setting_right_pane">
@@ -379,7 +379,7 @@
 
                                 </div>
                             </div>
-                        </div> -->
+                        </div>
 
                     </div>
 
