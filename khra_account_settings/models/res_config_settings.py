@@ -53,4 +53,10 @@ class ResConfigSettings(models.TransientModel):
                                              related='company_id.account_delivery_charge_tax_id', readonly=False)
     surge_tax_id = fields.Many2one('account.tax', string="Default Surge Tax", related='company_id.account_surge_tax_id',
                                    readonly=False)
+    commission_tax_id = fields.Many2one('account.tax', string="Default Commission Tax",
+                                        related='company_id.account_commission_tax_id', readonly=False)
+    commission_tcs_tax_id = fields.Many2one('account.tax', string="Default Commission TCS Tax",
+                                        related='company_id.account_commission_tcs_tax_id', readonly=False)
+    commission_tds_tax_id = fields.Many2one('account.tax', string="Default Commission TDS Tax",
+                                            related='company_id.account_commission_tds_tax_id', readonly=False)
 

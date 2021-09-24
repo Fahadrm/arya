@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    'name': "Payment to Restaurant",
+    'name': "mail_to_restaurant",
 
     'summary': """
         Short (1 phrase/line) summary of the module's purpose, used as
@@ -20,16 +20,15 @@
     'version': '14.0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account'],
+    'depends': ['base', 'mail', 'payment_to_restaurant'],
 
     # always loaded
     'data': [
-        'security/security.xml',
         'security/ir.model.access.csv',
-        'data/payment_data.xml',
-        'data/ir_cron_data.xml',
         'views/views.xml',
         'views/templates.xml',
+        'data/weekly_email_cron.xml',
+        'data/restaurant_mail_template.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
