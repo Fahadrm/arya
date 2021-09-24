@@ -1,15 +1,16 @@
 <odoo>
-  <data>
-    <record model="ir.ui.view" id="partner_restaurant_commission_view">
-      <field name="name">partner.commission.view</field>
-      <field name="model">res.partner</field>
-      <field name="inherit_id" ref="khra_account_settings.partner_view_type"/>
-      <field name="arch" type="xml">
-        <field name="yelo_delivery_boy_id" position="after">
-          <field name="restaurant_commission" attrs="{'invisible':[('partner_type','!=','restaurant')]}"/>
+    <data>
+        <record model="ir.ui.view" id="partner_restaurant_commission_view">
+          <field name="name">partner.commission.view</field>
+          <field name="model">res.partner</field>
+          <field name="inherit_id" ref="khra_account_settings.partner_view_type"/>
+          <field name="arch" type="xml">
+          <field name="yelo_delivery_boy_id" position="after">
+            <field name="restaurant_type" attrs="{'invisible':[('partner_type','!=','restaurant')]}"/>
+            <field name="restaurant_commission" attrs="{'invisible':[('partner_type','!=','restaurant')]}"/>
 
+          </field>
         </field>
-      </field>
-    </record>
-  </data>
+      </record>
+    </data>
 </odoo>

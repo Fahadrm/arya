@@ -14,11 +14,11 @@ class ResPartner(models.Model):
     yelo_customer_id = fields.Integer(string='Customer ID')
     yelo_restaurant_id = fields.Integer(string='Restaurant ID')
     yelo_delivery_boy_id = fields.Integer(string='Delivery Boy ID')
-    # restaurant_type = fields.Selection([
+    # restaurant_type = fields.Selection(selection=[
     #     ('silver', 'Silver'),
     #     ('gold', 'Gold'),
     #     ('platinum', 'Platinum'),
-    # ], string="Restaurant Type", default='silver' )
+    # ], string="Restaurant Type", default='silver')
     # restaurant_commission = fields.Float(string="Commission", digits='Product Price')
     # account_properties_partner_type = fields.Boolean('Setting properties',
     #                                                  # compute='_compute_property_values'

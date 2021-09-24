@@ -4,6 +4,8 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 import datetime
 import base64
+import xlsxwriter
+from xlsxwriter.utility import xl_range
 
 
 class RestaurantMailing(models.Model):
@@ -27,7 +29,7 @@ class RestaurantMailing(models.Model):
     body_html = fields.Text('Rich-text Contents', help="Rich-text/HTML message")
     attachment_ids = fields.Many2many('ir.attachment', 'restaurant_mailing_ir_attachments_rel',
                                       'restaurant_mailing_id', 'attachment_id', string='Attachments')
-    state = fields.Selection([('draft', 'Draft'), ('in_queue', 'In Queue'), ('sending', 'Sending'), ('done', 'Sent')],
+    state = fields.Selection([('draft', 'Draft'), ('in_queue', 'In Queue'), ('done', 'Sent')],
                              string='Status', required=True, tracking=True, copy=False, default='draft')
     user_id = fields.Many2one('res.users', string='Responsible', tracking=True,  default=lambda self: self.env.user)
     # Restaurant Payment Details
@@ -117,14 +119,11 @@ class RestaurantMailing(models.Model):
             if record.schedule_date < fields.Datetime.now():
                 raise ValidationError(_('Please select a date equal/or greater than the current date.'))
 
+    @api.model
     def _send_payment_details(self):
-        pass
+
         mass_mailings = self.search([('state', '=', 'in_queue'), '|', ('schedule_date', '<', fields.Datetime.now()), ('schedule_date', '=', False)])
         for mass_mailing in mass_mailings:
-            # pdf_attachment = mass_mailing.action_get_attachment(res, company)
-
-            # return self.env.ref('reorder_email_notification.reorder_email_notification_action_xlsx').report_action([],data=data)
-
             mail_to = []
             orders = []
             for recipient in mass_mailing.recipient_ids:
@@ -135,38 +134,201 @@ class RestaurantMailing(models.Model):
                 ('batch_id.payment_processing_date', '>=', mass_mailing.payout_start_date),
                 ('batch_id.payment_processing_date', '<=', mass_mailing.payout_end_date),
                 ('partner_id', '=', mass_mailing.partner_id.id)])
+
             for payment in payments:
                 orders.append(
                     {
                         'payout_on': payment.batch_id.payment_processing_date,
-                        'order_amount': payment.revised_order_amount,
+                        'order_amount': payment.food_cost,
                         'payout_amount': payment.final_payment,
                         'total_orders': payment.total_orders,
+                        'adjust_amt': payment.adjust_amt,
+                        'revised_order_amt': payment.revised_order_amount,
+                        'tax': payment.gst,
+                        'commission': payment.commission_amt,
+                        'commission_gst': payment.commission_gst,
+                        'commission_tcs': payment.commission_tcs,
+                        'commission_tds': payment.commission_tds,
                     }
                 )
+            attachments = self.create_attachment(orders, mass_mailing)
             template_id = self.env.ref('mail_to_restaurant.restaurant_weekly_payment_mail_template')
             if template_id and mass_mailing_mail_to:
                 # template_id.send_mail(self.id, force_send=True)
                 template_id.with_context({'email_to': mass_mailing_mail_to, 'email_cc': mass_mailing.email_cc,
                                           'orders': orders, }).\
-                    send_mail(mass_mailing.id, force_send=True, raise_exception=False, email_values=None, notif_layout=False)
+                    send_mail(mass_mailing.id, force_send=True, raise_exception=False,
+                              email_values={'attachment_ids': [attachments.id]}, notif_layout=False)
 
-    # def action_get_attachment(self, res, company):
-    #     pdf = self.env.ref('reorder_email_notification.action_reorder_email_notification_pdf')\
-    #         .render_qweb_pdf(self.ids, data={'data': res, 'company': company})
-    #     b64_pdf = base64.b64encode(pdf[0])
-    #     # save pdf as attachment
-    #     name = "reorder_qty_notification"
-    #     return self.env['ir.attachment'].create({
-    #         'name': name,
-    #         'type': 'binary',
-    #         'datas': b64_pdf,
-    #         # 'company_id': company.id,
-    #         # 'datas_fname': name + '.pdf',
-    #         # 'store_fname': name,
-    #         'res_model': self._name,
-    #         'res_id': self.id,
-    #         'mimetype': 'application/x-pdf'
-    #     })
+    @api.model
+    def create_attachment(self, orders, mail):
+
+        attachments = []
+        workbook = xlsxwriter.Workbook('Restaurant_payment.xlsx')
+        sheet1 = workbook.add_worksheet('Order Level Details')
+        sheet2 = workbook.add_worksheet('Ledger Extracts')
+        sheet3 = workbook.add_worksheet('Adjustment Details')
+        bold = workbook.add_format({'bold': True, 'align': 'left', 'font_size': 12})
+        head = workbook.add_format({'bold': True, 'align': 'center', 'font_size': 11, 'bg_color': '#000c66', 'border': 1, 'font_color': 'white'})
+        body = workbook.add_format({'align': 'center', 'font_size': 10, 'border': 1})
+        merge_format = workbook.add_format({
+            'bold': 1,
+            'align': 'center',
+            'font_size': 13
+        })
+        # ------------ORDER LEVEL DETAILS---------------
+        sheet1.hide_gridlines(2)
+        if orders:
+            sheet1.set_column('B:B', 20)
+            sheet1.set_column('C:C', 20)
+            sheet1.set_column('D:D', 20)
+            sheet1.set_column('E:E', 25)
+            sheet1.set_column('F:F', 20)
+            sheet1.set_column('G:G', 20)
+            sheet1.set_column('H:H', 20)
+            sheet1.set_column('I:I', 20)
+            sheet1.set_column('J:J', 20)
+            sheet1.set_column('K:K', 20)
+            sheet1.merge_range('B3:C3', "Order Details", merge_format)
+            row = 4
+            column = 1
+            sheet1.write(row, 1, 'Date', head)
+            sheet1.write(row, 2, 'Order Amount', head)
+            sheet1.write(row, 3, 'Adjustments', head)
+            sheet1.write(row, 4, 'Revised Order Amount', head)
+            sheet1.write(row, 5, 'Tax', head)
+            sheet1.write(row, 6, 'Commission', head)
+            sheet1.write(row, 7, 'GST', head)
+            sheet1.write(row, 8, 'TCS', head)
+            sheet1.write(row, 9, 'TDS', head)
+            sheet1.write(row, 10, 'Amount Payable', head)
+            row += 1
+            for order in orders:
+                sheet1.write(row, 1, order['payout_on'], body)
+                sheet1.write(row, 2, order['order_amount'], body)
+                sheet1.write(row, 3, order['adjust_amt'], body)
+                sheet1.write(row, 4, order['revised_order_amt'], body)
+                sheet1.write(row, 5, order['tax'], body)
+                sheet1.write(row, 6, order['commission'], body)
+                sheet1.write(row, 7, order['commission_gst'], body)
+                sheet1.write(row, 8, order['commission_tcs'], body)
+                sheet1.write(row, 9, order['commission_tds'], body)
+                sheet1.write(row, 10, order['payout_amount'], body)
+                row += 1
+
+            total_cell_range3 = xl_range(5, 3, row - 1, 3)
+            total_cell_range4 = xl_range(5, 4, row - 1, 4)
+            total_cell_range5 = xl_range(5, 5, row - 1, 5)
+            total_cell_range6 = xl_range(5, 6, row - 1, 6)
+            total_cell_range7 = xl_range(5, 7, row - 1, 7)
+            total_cell_range8 = xl_range(5, 8, row - 1, 8)
+            total_cell_range9 = xl_range(5, 9, row - 1, 9)
+            total_cell_range10 = xl_range(5, 10, row - 1, 10)
+
+            sheet1.write(row, 1, "", head)
+            sheet1.write(row, 2, "", head)
+            sheet1.write_formula(row, 3, '=SUM(' + total_cell_range3 + ')', head)
+            sheet1.write(row, 4, '=SUM(' + total_cell_range4 + ')', head)
+            sheet1.write(row, 5, '=SUM(' + total_cell_range5 + ')', head)
+            sheet1.write(row, 6, '=SUM(' + total_cell_range6 + ')', head)
+            sheet1.write(row, 7, '=SUM(' + total_cell_range7 + ')', head)
+            sheet1.write(row, 8, '=SUM(' + total_cell_range8 + ')', head)
+            sheet1.write(row, 9, '=SUM(' + total_cell_range9 + ')', head)
+            sheet1.write(row, 10, '=SUM(' + total_cell_range10 + ')', head)
+
+        #----------LEDGER EXTRACTS----------------
+        opening_balance = self.get_opening_balance(mail)
+
+        sheet2.hide_gridlines(2)
+        sheet2.set_column('A:A', 20)
+        sheet2.set_column('B:B', 20)
+        sheet2.set_column('C:C', 20)
+        sheet2.set_column('D:D', 20)
+        sheet2.set_column('E:E', 20)
+        sheet2.set_column('F:F', 20)
+        sheet2.set_column('G:G', 20)
+        sheet2.set_column('H:H', 20)
+
+        sheet2.write('A1', 'Date', head)
+        sheet2.write('B1', 'Order ID', head)
+        sheet2.write('C1', 'Invoice No./Voucher No.', head)
+        sheet2.write('D1', 'Particulars', head)
+        sheet2.write('E1', 'Transaction ID', head)
+        sheet2.write('F1', 'Debit', head)
+        sheet2.write('G1', 'Credit', head)
+        sheet2.write('H1', 'Balance', head)
+        row = 1
+        sheet2.write(row, 0, mail.payout_start_date - datetime.timedelta(days=1), body)
+        sheet2.write(row, 1, "", body)
+        sheet2.write(row, 2, "", body)
+        sheet2.write(row, 3, "Opening Balance", body)
+        sheet2.write(row, 4, "", body)
+        sheet2.write(row, 5, "", body)
+        sheet2.write(row, 6, "", body)
+        sheet2.write(row, 7, opening_balance, body)
+        row += 1
+        for line in self.get_ledger_extracts(mail):
+            sheet2.write(row, 0, line['date'], body)
+            sheet2.write(row, 1, line['order_id'], body)
+            sheet2.write(row, 2, "", body)
+            sheet2.write(row, 3, line['particulars'], body)
+            sheet2.write(row, 4, "", body)
+            sheet2.write(row, 5, line['debit'], body)
+            sheet2.write(row, 6, line['credit'], body)
+            sheet2.write(row, 7, line['balance'], body)
+            row += 1
+        workbook.close()
+        fp = open('Restaurant_payment.xlsx', "rb")
+        file_data = fp.read()
+
+        attachment = self.env['ir.attachment'].create({
+            'datas': base64.b64encode(file_data),
+            'name': 'Restaurant_payment.xlsx',
+            'type': 'binary',
+            'company_id': self.env.company.id
+        })
+
+        return attachment
+
+    @api.model
+    def get_opening_balance(self, data):
+        query = '''select sum(balance) as balance FROM 
+            account_move_line WHERE date < %s and parent_state = 'posted' 
+            and account_id = %s and partner_id = %s 
+        '''
+        self.env.cr.execute(query, (data.payout_start_date, data.partner_id.property_account_receivable_id.id, data.partner_id.id))
+        value = 0
+        for row in self.env.cr.dictfetchall():
+            value = row['balance']
+
+        return value
+
+    @api.model
+    def get_ledger_extracts(self, data):
+        lines = []
+        query = '''select aml.date,aml.name,aml.debit,aml.credit,aml.balance, am.yelo_order_id
+            from account_move_line aml
+            left join account_move am on am.id = aml.move_id
+            where aml.partner_id = %s and aml.account_id = %s 
+            and aml.parent_state = 'posted'
+            and to_char(date_trunc('day',aml.date),'YYYY-MM-DD')::date between %s and %s '''
+        self.env.cr.execute(query, (data.partner_id.id, data.partner_id.property_account_receivable_id.id,
+                                    data.payout_start_date, data.payout_end_date,))
+        for row in self.env.cr.dictfetchall():
+            res = {
+                'date': row['date'],
+                'order_id': row['yelo_order_id'],
+                'particulars': row['name'] if row['name'] else " ",
+                'debit': row['debit'] if row['debit'] else "",
+                'credit': row['credit'] if row['credit'] else "",
+                'balance': row['balance'] if row['balance'] else "",
+            }
+            lines.append(res)
+        if lines:
+            return lines
+        else:
+            return []
+
+
 
 
