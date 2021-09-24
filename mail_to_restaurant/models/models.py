@@ -48,7 +48,7 @@ class RestaurantMailing(models.Model):
     total_orders = fields.Float(string='Total Orders', digits='Product Unit of Measure')
 
     def _update_payment_details(self):
-        date1 = datetime.datetime.today().date() - datetime.timedelta(days=9)
+        date1 = datetime.datetime.today().date() - datetime.timedelta(days=7)
         date2 = datetime.datetime.today().date() - datetime.timedelta(days=1)
         restaurant_payments = self.env['restaurant.payments'].search([
             ('batch_id.payment_processing_date', '>=', date1),
