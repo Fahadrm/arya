@@ -58,5 +58,5 @@ class ResConfigSettings(models.TransientModel):
 #     commission_tcs_tax_id = fields.Many2one('account.tax', string="Default Commission TCS Tax",
 #                                         related='company_id.account_commission_tcs_tax_id', readonly=False)
 #     commission_tds_tax_id = fields.Many2one('account.tax', string="Default Commission TDS Tax",
-                                            related='company_id.account_commission_tds_tax_id', readonly=False)
+#                                             related='company_id.account_commission_tds_tax_id', readonly=False)
 
