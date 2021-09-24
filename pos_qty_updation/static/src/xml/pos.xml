@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="CustomQtyButtons" owl="1">
+       <span class="control-button" t-att-class="is_available()?    'highlight' : ''">
+<!--           <input type="file" id="myFile"/>-->
+           <i class="fa fa-star"></i>
+           <span> </span>
+           <span>QTY</span>
+       </span>
+   </t>
+</templates>
