@@ -75,7 +75,7 @@
                             <field name="email_cc"/>
                         </group>
                         <notebook>
-                           <!--  <page st -->ring="Mail Body" name="mail_body">
+                            <page string="Mail Body" name="mail_body">
 <!--                                <field name="body_html" class="oe_read_only" widget="html"-->
 <!--                                       options="{'cssReadonly': 'mass_mailing.iframe_css_assets_readonly'}"/>-->
 <!--                                <field name="body_arch" class="o_mail_body oe_edit_only" widget="mass_mailing_html"-->
@@ -84,7 +84,7 @@
 <!--                                        'cssEdit': 'mass_mailing.iframe_css_assets_edit',-->
 <!--                                        'inline-field': 'body_html'-->
 <!--                                }" attrs="{'readonly': [('state', 'in', ('sending', 'done'))]}"/>-->
-                           <!--  </pa -->ge>
+                            </page>
                             <page string="Payout Details"
                                   name="payout_details">
                                 <div style="vertical-align: top;">

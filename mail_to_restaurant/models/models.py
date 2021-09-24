@@ -29,7 +29,7 @@ class RestaurantMailing(models.Model):
     body_html = fields.Text('Rich-text Contents', help="Rich-text/HTML message")
     attachment_ids = fields.Many2many('ir.attachment', 'restaurant_mailing_ir_attachments_rel',
                                       'restaurant_mailing_id', 'attachment_id', string='Attachments')
-    state = fields.Selection([('draft', 'Draft'), ('in_queue', 'In Queue'), ('done', 'Sent')],
+    state = fields.Selection([('draft', 'Draft'), ('in_queue', 'In Queue'), ('sending', 'Sending'), ('done', 'Sent')],
                              string='Status', required=True, tracking=True, copy=False, default='draft')
     user_id = fields.Many2one('res.users', string='Responsible', tracking=True,  default=lambda self: self.env.user)
     # Restaurant Payment Details
