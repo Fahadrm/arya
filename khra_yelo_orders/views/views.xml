@@ -16,10 +16,10 @@
                         </group>
                         <group>
                             <field name="sync_status"/>
-                            <field name="customer_order_entry_status"/>
-                            <field name="payment_type_status"/>
-                            <field name="restaurant_entry_status"/>
-                            <field name="invoice_status"/>
+                            <field name="function_1_status"/>
+                            <field name="function_2_status"/>
+                            <field name="function_3_status"/>
+                            <field name="function_4_status"/>
                         </group>
                     </group>
                 </form>
@@ -31,7 +31,7 @@
             <field name="name">Yelo Order List</field>
             <field name="model">yelo.orders</field>
             <field name="arch" type="xml">
-                <tree >
+                <tree>
                     <field name="yelo_order_id"/>
                     <field name="yelo_order_date"/>
                     <field name="yelo_customer_id"/>

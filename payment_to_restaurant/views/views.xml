@@ -55,18 +55,11 @@
                             <field name="partner_id"/>
                             <field name="yelo_restaurant_id"/>
                             <field name="food_cost"/>
-                            <field name="adjust_amt"/>
-                            <field name="revised_order_amount"/>
-                            <field name="gst"/>
                         </group>
                         <group>
-                            <field name="total_orders"/>
+                            <field name="gst"/>
                             <field name="commission_amt"/>
-                            <field name="commission_gst"/>
-                            <field name="commission_tcs"/>
-                            <field name="commission_tds"/>
                             <field name="final_payment"/>
-                            <field name="payout_email" invisible="1"/>
                             <field name="user_id"/>
                             <field name="company_id"/>
                         </group>

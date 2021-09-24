@@ -24,10 +24,10 @@ class YeloOrders(models.Model):
     ], string="Order Type")
     yelo_order_date = fields.Date(string='Order Date', index=True)
     sync_status = fields.Boolean(string='Sync status', default=False)
-    customer_order_entry_status = fields.Boolean(string='Customer Order Entry status', default=False)
-    payment_type_status = fields.Boolean(string='Payment Type Entry status', default=False)
-    restaurant_entry_status = fields.Boolean(string='Restaurant Entry status', default=False)
-    invoice_status = fields.Boolean(string='Invoice status', default=False)
+    function_1_status = fields.Boolean(string='F1 status', default=False)
+    function_2_status = fields.Boolean(string='F2 status', default=False)
+    function_3_status = fields.Boolean(string='F3 status', default=False)
+    function_4_status = fields.Boolean(string='F4 status', default=False)
 
     @api.model
     def _yelo_order_sync(self):
@@ -123,8 +123,7 @@ class YeloOrders(models.Model):
                     ]
                 })
                 first_entry_move.post()
-                record.customer_order_entry_status = True
-                if data['payment_type'] == 'CASH':
+                if data['payment_name'] == 'Cash':
                     second_entry_move = self.env['account.move'].create({
                         'date': move_date,
                         'journal_id': self.env.company.yelo_second_entry_journal_id.id,
@@ -153,8 +152,7 @@ class YeloOrders(models.Model):
                          ]
                     })
                     second_entry_move.post()
-                    record.payment_type_status = True
-                if data['payment_type'] == 'RAZORPAY':
+                if data['payment_name'] == 'test':
                     second_entry_move = self.env['account.move'].create({
                         'date': move_date,
                         'journal_id': self.env.company.yelo_second_entry_journal_id.id,
@@ -182,8 +180,7 @@ class YeloOrders(models.Model):
                         ]
                     })
                     second_entry_move.post()
-                    record.payment_type_status = True
-                if data['payment_type'] == 'WALLET':
+                if data['payment_name'] == 'Customer_wallet':
                     second_entry_move1 = self.env['account.move'].create({
                         'date': move_date,
                         'journal_id': self.env.company.yelo_second_entry_journal_id.id,
@@ -239,181 +236,94 @@ class YeloOrders(models.Model):
                         ]
                     })
                     second_entry_move2.post()
-                    record.payment_type_status = True
                 promo_discount = 0
                 for promo in data["promoList"]:
                     promo_discount += promo["promo_discount"]
-                third_move_line_datas = [
-                    (0, 0,
-                     {
-                         'account_id': self.env.company.order_processed_account_id.id,
-                         'name': "To Order Processed (Sales)",
-                         'debit': data['total_amount'],
-                         'credit': 0,
-                         'currency_id': self.env.company.currency_id.id,
-                     }),
-                    (0, 0,
-                     {
-                         'account_id': self.env.company.promotion_account_id.id,
-                         'name': "Promotion applied",
-                         'debit': promo_discount,
-                         'credit': 0,
-                         'currency_id': self.env.company.currency_id.id
-                     }),
-                    (0, 0,
-                     {
-                         'account_id': restaurant.property_account_receivable_id.id,
-                         'name': "Restaurant control A/c Sub A/c - " + restaurant.name + " A/c",
-                         'debit': 0,
-                         'credit': data['order_amount'],
-                         'currency_id': self.env.company.currency_id.id,
-                         'restaurant_cost_type': 'food_cost',
-                         'partner_id': restaurant.id,
-                     }),
-                    (0, 0,
-                     {
-                         'account_id': self.env.company.food_gst_account_id.id,
-                         'name': "Food GST A/c",
-                         'debit': 0,
-                         'credit': data['tax'],
-                         'currency_id': self.env.company.currency_id.id
-                     }),
-                    (0, 0,
-                     {
-                         'account_id': self.env.company.delivery_charge_account_id.id,
-                         'name': "Delivery Charge received (by " + rider.name + " )",
-                         'debit': 0,
-                         'credit': delivery_charge_tax['total_excluded'],
-                         'currency_id': self.env.company.currency_id.id
-                     }),
-                    (0, 0,
-                     {
-                         'account_id': self.env.company.tip_account_id.id,
-                         'name': "Tip received for (by " + rider.name + " )",
-                         'debit': 0,
-                         'credit': data['tip'],
-                         'currency_id': self.env.company.currency_id.id
-                     }),
-                    (0, 0,
-                     {
-                         'account_id': self.env.company.surge_account_id.id,
-                         'name': "Delivery sur charge received (by " + rider.name + " )",
-                         'debit': 0,
-                         'credit': surge_tax['total_excluded'],
-                         'currency_id': self.env.company.currency_id.id
-                     }),
-                ]
-                for tax in delivery_charge_tax['taxes']:
-                    third_move_line_datas.append(
-                        (0, 0,
-                         {
-                             'account_id': tax['account_id'],
-                             'name': tax['name'],
-                             'debit': 0,
-                             'credit': tax['amount'],
-                             'currency_id': self.env.company.currency_id.id,
-                         }),
-                    )
-
-                for tax in surge_tax['taxes']:
-                    third_move_line_datas.append(
-                        (0, 0,
-                         {
-                             'account_id': tax['account_id'],
-                             'name': tax['name'],
-                             'debit': 0,
-                             'credit': tax['amount'],
-                             'currency_id': self.env.company.currency_id.id,
-                         }),
-                    )
-
                 third_entry_move1 = self.env['account.move'].create({
                     'date': move_date,
                     'journal_id': self.env.company.yelo_third_entry_journal_id.id,
                     'company_id': self.env.company.id,
                     'user_id': self.env.user.id,
                     'yelo_order_id': record.yelo_order_id,
-                    'line_ids': third_move_line_datas,
+                    'line_ids': [
+                        (0, 0,
+                            {
+                                'account_id': self.env.company.order_processed_account_id.id,
+                                'name': "To Order Processed (Sales)",
+                                'debit': data['total_amount'],
+                                'credit': 0,
+                                'currency_id': self.env.company.currency_id.id,
+                            }),
+                        (0, 0,
+                            {
+                                'account_id': self.env.company.promotion_account_id.id,
+                                'name': "Promotion applied",
+                                'debit': promo_discount,
+                                'credit': 0,
+                                'currency_id': self.env.company.currency_id.id
+                            }),
+                        (0, 0,
+                         {
+                             'account_id': restaurant.property_account_receivable_id.id,
+                             'name': "Restaurant control A/c Sub A/c - " + restaurant.name + " A/c",
+                             'debit': 0,
+                             'credit': data['order_amount'],
+                             'currency_id': self.env.company.currency_id.id,
+                             'restaurant_cost_type': 'food_cost',
+                             'partner_id': restaurant.id,
+                         }),
+                        (0, 0,
+                         {
+                             'account_id': self.env.company.food_gst_account_id.id,
+                             'name': "Food GST A/c",
+                             'debit': 0,
+                             'credit': data['tax'],
+                             'currency_id': self.env.company.currency_id.id
+                         }),
+                        (0, 0,
+                         {
+                             'account_id': self.env.company.delivery_charge_account_id.id,
+                             'name': "Delivery Charge received (by " + rider.name + " )",
+                             'debit': 0,
+                             'credit': delivery_charge_tax['total_excluded'],
+                             'currency_id': self.env.company.currency_id.id
+                         }),
+                        (0, 0,
+                         {
+                             'account_id': self.env.company.tip_account_id.id,
+                             'name': "Tip received for (by " + rider.name + " )",
+                             'debit': 0,
+                             'credit': data['tip'],
+                             'currency_id': self.env.company.currency_id.id
+                         }),
+                        (0, 0,
+                         {
+                             'account_id': self.env.company.surge_account_id.id,
+                             'name': "Delivery sur charge received (by " + rider.name + " )",
+                             'debit': 0,
+                             'credit': surge_tax['total_excluded'],
+                             'currency_id': self.env.company.currency_id.id
+                         }),
+                    ]
                 })
-                #     'line_ids': [
-                #         (0, 0,
-                #             {
-                #                 'account_id': self.env.company.order_processed_account_id.id,
-                #                 'name': "To Order Processed (Sales)",
-                #                 'debit': data['total_amount'],
-                #                 'credit': 0,
-                #                 'currency_id': self.env.company.currency_id.id,
-                #             }),
-                #         (0, 0,
-                #             {
-                #                 'account_id': self.env.company.promotion_account_id.id,
-                #                 'name': "Promotion applied",
-                #                 'debit': promo_discount,
-                #                 'credit': 0,
-                #                 'currency_id': self.env.company.currency_id.id
-                #             }),
-                #         (0, 0,
-                #          {
-                #              'account_id': restaurant.property_account_receivable_id.id,
-                #              'name': "Restaurant control A/c Sub A/c - " + restaurant.name + " A/c",
-                #              'debit': 0,
-                #              'credit': data['order_amount'],
-                #              'currency_id': self.env.company.currency_id.id,
-                #              'restaurant_cost_type': 'food_cost',
-                #              'partner_id': restaurant.id,
-                #          }),
-                #         (0, 0,
-                #          {
-                #              'account_id': self.env.company.food_gst_account_id.id,
-                #              'name': "Food GST A/c",
-                #              'debit': 0,
-                #              'credit': data['tax'],
-                #              'currency_id': self.env.company.currency_id.id
-                #          }),
-                #         (0, 0,
-                #          {
-                #              'account_id': self.env.company.delivery_charge_account_id.id,
-                #              'name': "Delivery Charge received (by " + rider.name + " )",
-                #              'debit': 0,
-                #              'credit': delivery_charge_tax['total_excluded'],
-                #              'currency_id': self.env.company.currency_id.id
-                #          }),
-                #         (0, 0,
-                #          {
-                #              'account_id': self.env.company.tip_account_id.id,
-                #              'name': "Tip received for (by " + rider.name + " )",
-                #              'debit': 0,
-                #              'credit': data['tip'],
-                #              'currency_id': self.env.company.currency_id.id
-                #          }),
-                #         (0, 0,
-                #          {
-                #              'account_id': self.env.company.surge_account_id.id,
-                #              'name': "Delivery sur charge received (by " + rider.name + " )",
-                #              'debit': 0,
-                #              'credit': surge_tax['total_excluded'],
-                #              'currency_id': self.env.company.currency_id.id
-                #          }),
-                #     ]
-                # })
-                # for tax in delivery_charge_tax['taxes']:
-                #     self.env['account.move.line'].create({
-                #         'account_id': tax['account_id'],
-                #         'name': tax['name'],
-                #         'debit': 0,
-                #         'credit': tax['amount'],
-                #         'currency_id': self.env.company.currency_id.id,
-                #         'move_id': third_entry_move1.id,
-                #     })
-                # for tax in surge_tax['taxes']:
-                #     self.env['account.move.line'].create({
-                #         'account_id': tax['account_id'],
-                #         'name': tax['name'],
-                #         'debit': 0,
-                #         'credit': tax['amount'],
-                #         'currency_id': self.env.company.currency_id.id,
-                #         'move_id': third_entry_move1.id,
-                #     })
+                for tax in delivery_charge_tax['taxes']:
+                    self.env['account.move.line'].create({
+                        'account_id': tax['account_id'],
+                        'name': tax['name'],
+                        'debit': 0,
+                        'credit': tax['amount'],
+                        'currency_id': self.env.company.currency_id.id,
+                        'move_id': third_entry_move1.id,
+                    })
+                for tax in surge_tax['taxes']:
+                    self.env['account.move.line'].create({
+                        'account_id': tax['account_id'],
+                        'name': tax['name'],
+                        'debit': 0,
+                        'credit': tax['amount'],
+                        'currency_id': self.env.company.currency_id.id,
+                        'move_id': third_entry_move1.id,
+                    })
                 third_entry_move1.post()
                 third_entry_move2 = self.env['account.move'].create({
                     'date': move_date,
@@ -444,7 +354,6 @@ class YeloOrders(models.Model):
                     ]
                 })
                 third_entry_move2.post()
-                record.restaurant_entry_status = True
             record.update({
                 'sync_status': True
             })
