@@ -48,4 +48,7 @@ class ResCompany(models.Model):
 
     account_delivery_charge_tax_id = fields.Many2one('account.tax', string="Default Delivery Charge Tax")
     account_surge_tax_id = fields.Many2one('account.tax', string="Default Surge Tax")
+    account_commission_tax_id = fields.Many2one('account.tax', string="Default Commission Tax")
+    account_commission_tcs_tax_id = fields.Many2one('account.tax', string="Default Commission TCS Tax")
+    account_commission_tds_tax_id = fields.Many2one('account.tax', string="Default Commission TDS Tax")
 
