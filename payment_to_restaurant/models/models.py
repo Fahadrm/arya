@@ -96,8 +96,8 @@ class RestaurantPayments(models.Model):
     commission_rate = fields.Float(string='Commission Rate', digits='Product Price', related='partner_id.restaurant_commission')
     commission_amt = fields.Float(string='Commission Amount', digits='Product Price', compute="_compute_amount")
     commission_gst = fields.Float(string="Commission GST", digits='Product Price', compute="_compute_amount")
-    commission_tcs = fields.Float(string="Commission TCS", digits='Product Price', compute="_compute_amount")
-    commission_tds = fields.Float(string="Commission TDS", digits='Product Price', compute="_compute_amount")
+    tcs = fields.Float(string="TCS", digits='Product Price', compute="_compute_amount")
+    tds = fields.Float(string="TDS", digits='Product Price', compute="_compute_amount")
     final_payment = fields.Float(string='Final Payment', required=True, digits='Product Price', compute="_compute_amount")
     total_orders = fields.Float(string='Total Orders', digits='Product Unit of Measure')
     company_id = fields.Many2one('res.company', related='batch_id.company_id', string='Company', store=True,
@@ -105,7 +105,7 @@ class RestaurantPayments(models.Model):
     user_id = fields.Many2one('res.users', related='batch_id.user_id', string='User', store=True, readonly=True)
     payout_email = fields.Boolean(string='Payout Email', default=False)
 
-    @api.depends('food_cost', 'adjust_amt', 'gst', 'commission_rate')
+    @api.depends('food_cost', 'adjust_amt', 'gst', 'commission_rate', 'revised_order_amount')
     def _compute_amount(self):
         for record in self:
             commission = ((record.food_cost - record.adjust_amt) * record.commission_rate)/100
@@ -113,19 +113,19 @@ class RestaurantPayments(models.Model):
                 commission, quantity=1)
             commission_amt = commission_tax_details['total_excluded']
             commission_gst = commission_tax_details['total_included'] - commission_tax_details['total_excluded']
-            commission_tcs_details = self.env.company.account_commission_tcs_tax_id.compute_all(
-                commission_amt + commission_gst, quantity=1)
-            commission_tds_details = self.env.company.account_commission_tds_tax_id.compute_all(
-                commission_amt + commission_gst, quantity=1)
-            commission_tcs = commission_tcs_details['total_included'] - commission_tcs_details['total_excluded']
-            commission_tds = commission_tds_details['total_included'] - commission_tds_details['total_excluded']
+            tcs_details = self.env.company.account_commission_tcs_tax_id.compute_all(
+                record.revised_order_amount, quantity=1)
+            tds_details = self.env.company.account_commission_tds_tax_id.compute_all(
+                record.revised_order_amount, quantity=1)
+            tcs = tcs_details['total_included'] - tcs_details['total_excluded']
+            tds = tds_details['total_included'] - tds_details['total_excluded']
             final_payment = record.food_cost - record.adjust_amt + record.gst - commission_amt - commission_gst \
-                            - commission_tcs - commission_tds
+                            - tcs - tds
             record.update({
                 'commission_amt': commission_amt,
                 'commission_gst': commission_gst,
-                'commission_tcs': commission_tcs,
-                'commission_tds': commission_tds,
+                'tcs': tcs,
+                'tds': tds,
                 'final_payment': final_payment
             })
 
