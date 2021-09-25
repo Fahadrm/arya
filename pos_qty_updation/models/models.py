@@ -6,13 +6,15 @@ import urllib.request
 import json
 # open a connection to a URL using urllib
 from odoo.exceptions import AccessDenied, UserError
+from odoo.addons import decimal_precision as dp
+
 
 
 class ProductQtyUpdation(models.Model):
     _name = "product.qty.updation"
 
     name = fields.Char(string="Name",default="Qty")
-    pos_qty = fields.Float(string="Qty")
+    pos_qty = fields.Float(string="Qty",digits=dp.get_precision('Weignscale Qty'))
 
 
     def read_file_button(self):
