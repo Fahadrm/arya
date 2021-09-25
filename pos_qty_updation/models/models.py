@@ -25,6 +25,7 @@ class ProductQtyUpdation(models.Model):
                     field = str(i.pos_qty).strip().split()
                     s = field
                     i.unlink()
+            self.env['product.qty.updation'].search([]).unlink()
         else:
             return "QTY"
 
