@@ -96,7 +96,7 @@ class RestaurantMailing(models.Model):
                 restaurant_data[payments.partner_id.id]['total_orders'] += payments.total_orders
             payments.payout_email = True
         for key in restaurant_data:
-            email_date = self.create({
+            email_date = self.create([{
                 'subject': restaurant_data[key]['partner_id'].name + " Payout",
                 'email_to': restaurant_data[key]['partner_id'].email,
                 'partner_id': key,
@@ -108,7 +108,7 @@ class RestaurantMailing(models.Model):
                 'payout_start_date': date1,
                 'payout_end_date': date2,
                 'total_orders': restaurant_data[key]['total_orders'],
-            })
+            }])
 
     def action_put_in_queue(self):
         self.write({'state': 'in_queue'})
@@ -124,6 +124,7 @@ class RestaurantMailing(models.Model):
 
         mass_mailings = self.search([('state', '=', 'in_queue'), '|', ('schedule_date', '<', fields.Datetime.now()), ('schedule_date', '=', False)])
         for mass_mailing in mass_mailings:
+            mass_mailing.state = 'sending'
             mail_to = []
             orders = []
             for recipient in mass_mailing.recipient_ids:
@@ -147,8 +148,8 @@ class RestaurantMailing(models.Model):
                         'tax': payment.gst,
                         'commission': payment.commission_amt,
                         'commission_gst': payment.commission_gst,
-                        'commission_tcs': payment.commission_tcs,
-                        'commission_tds': payment.commission_tds,
+                        'commission_tcs': payment.tcs,
+                        'commission_tds': payment.tds,
                     }
                 )
             attachments = self.create_attachment(orders, mass_mailing)
@@ -159,6 +160,8 @@ class RestaurantMailing(models.Model):
                                           'orders': orders, }).\
                     send_mail(mass_mailing.id, force_send=True, raise_exception=False,
                               email_values={'attachment_ids': [attachments.id]}, notif_layout=False)
+            mass_mailing.state = 'done'
+            mass_mailing.attachment_ids = [(4, attachments .id)] if attachments else []
 
     @api.model
     def create_attachment(self, orders, mail):
@@ -277,6 +280,33 @@ class RestaurantMailing(models.Model):
             sheet2.write(row, 6, line['credit'], body)
             sheet2.write(row, 7, line['balance'], body)
             row += 1
+
+        # ------------ADJUSTMENT DETAILS---------------
+        sheet3.hide_gridlines(2)
+        sheet3.set_column('A:A', 20)
+        sheet3.set_column('B:B', 20)
+        sheet3.set_column('C:C', 20)
+        sheet3.set_column('D:D', 20)
+        sheet3.set_column('E:E', 20)
+        sheet3.set_column('F:F', 20)
+
+        sheet3.write('A1', 'Adjustment Item', head)
+        sheet3.write('B1', 'Previous Amount', head)
+        sheet3.write('C1', 'Adjusted Amount', head)
+        sheet3.write('D1', 'Revised Amount', head)
+        sheet3.write('E1', 'Voucher Number', head)
+        sheet3.write('F1', 'Remarks', head)
+        row = 1
+
+        for line in self.get_adjustment_details(mail):
+            sheet3.write(row, 0, line['adjustment_item'], body)
+            sheet3.write(row, 1, line['previous_amt'], body)
+            sheet3.write(row, 2, line['adjusted_amt'], body)
+            sheet3.write(row, 3, line['revised_amt'], body)
+            sheet3.write(row, 4, line['voucher_no'], body)
+            sheet3.write(row, 5, line['remarks'], body)
+            row += 1
+
         workbook.close()
         fp = open('Restaurant_payment.xlsx', "rb")
         file_data = fp.read()
@@ -324,6 +354,37 @@ class RestaurantMailing(models.Model):
                 'balance': row['balance'] if row['balance'] else "",
             }
             lines.append(res)
+        if lines:
+            return lines
+        else:
+            return []
+
+    @api.model
+    def get_adjustment_details(self, data):
+        lines = []
+        adjustment_entries = self.env['account.move.line'].search([
+            ('parent_state', '=', 'posted'), ('move_id.reversed_entry_id.journal_id', '=', self.env.company.yelo_third_entry_journal_id.id),
+            ('partner_id', '=', data.partner_id.id)
+        ])
+        for entries in adjustment_entries:
+            previous_entry = self.env['account.move.line'].search([
+                ('parent_state', '=', 'posted'),
+                ('move_id', '=', entries.move_id.reversed_entry_id.id),
+                ('partner_id', '=', data.partner_id.id)
+            ])
+            previous_amount = sum(line['balance'] for line in previous_entry)
+            previous_amt = previous_amount if previous_amount >= 0 else previous_amount * -1
+            revised_amt = previous_amt - (entries.balance if entries.balance >= 0 else entries.balance * -1)
+            res = {
+                'adjustment_item': entries.name,
+                'previous_amt': previous_amt,
+                'adjusted_amt': entries.balance if entries.balance >= 0 else entries.balance * -1,
+                'revised_amt': revised_amt,
+                'voucher_no': entries.move_id.name,
+                'remarks': entries.move_id.narration,
+            }
+            lines.append(res)
+
         if lines:
             return lines
         else:
