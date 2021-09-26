@@ -48,29 +48,53 @@
             <field name="model">restaurant.payments</field>
             <field name="arch" type="xml">
                 <form edit="0" create="0" delete="0">
-                    <group>
+                    <header>
+                        <button name="action_register_payment" id="restaurant_payment_btn"
+                                type="object" class="oe_highlight"
+                                attrs="{'invisible': [('payment_state', '=', 'paid')]}"
+                                string="Register Payment"
+                        />
+                        <field name="payment_state" invisible="1"/>
+                        <field name="bank_state" widget="statusbar" statusbar_visible="waiting,paid,failed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_restaurant_payments"
+                                    type="object"
+                                    class="oe_stat_button"
+                                    icon="fa-pencil-square-o"
+                                    attrs="{'invisible': [('account_payment_id', '=', False)]}">
+                                <field name="account_payment_id" widget="statinfo" string="Payments"/>
+                            </button>
+                        </div>
+                        <widget name="web_ribbon" title="Paid"
+                                attrs="{'invisible': [('payment_state', '=', 'new')]}"/>
+                        <widget name="web_ribbon" title="New"
+                                attrs="{'invisible': [('payment_state', '=', 'paid')]}"/>
                         <group>
-                            <field name="name"/>
-                            <field name="batch_id"/>
-                            <field name="partner_id"/>
-                            <field name="yelo_restaurant_id"/>
-                            <field name="food_cost"/>
-                            <field name="adjust_amt"/>
-                            <field name="revised_order_amount"/>
-                            <field name="gst"/>
+                            <group>
+                                <field name="name"/>
+                                <field name="batch_id"/>
+                                <field name="partner_id"/>
+                                <field name="yelo_restaurant_id"/>
+                                <field name="food_cost"/>
+                                <field name="adjust_amt"/>
+                                <field name="revised_order_amount"/>
+                                <field name="gst"/>
+                            </group>
+                            <group>
+                                <field name="total_orders"/>
+                                <field name="commission_amt"/>
+                                <field name="commission_gst"/>
+                                <field name="tcs"/>
+                                <field name="tds"/>
+                                <field name="final_payment"/>
+                                <field name="payout_email" invisible="1"/>
+                                <field name="user_id"/>
+                                <field name="company_id"/>
+                            </group>
                         </group>
-                        <group>
-                            <field name="total_orders"/>
-                            <field name="commission_amt"/>
-                            <field name="commission_gst"/>
-                            <field name="tcs"/>
-                            <field name="tds"/>
-                            <field name="final_payment"/>
-                            <field name="payout_email" invisible="1"/>
-                            <field name="user_id"/>
-                            <field name="company_id"/>
-                        </group>
-                    </group>
+                    </sheet>
                 </form>
             </field>
         </record>
@@ -89,6 +113,8 @@
                     <field name="gst"/>
                     <field name="commission_amt"/>
                     <field name="final_payment"/>
+                    <field name="payment_state"/>
+                    <field name="bank_state"/>
                 </tree>
             </field>
         </record>

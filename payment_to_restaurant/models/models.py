@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 import datetime
 
 
@@ -104,6 +104,30 @@ class RestaurantPayments(models.Model):
                                  readonly=True)
     user_id = fields.Many2one('res.users', related='batch_id.user_id', string='User', store=True, readonly=True)
     payout_email = fields.Boolean(string='Payout Email', default=False)
+    bank_state = fields.Selection(selection=[
+        ('waiting', 'Waiting'), ('paid', 'Paid'), ('failed', 'Failed'),
+    ], string='Bank Status', required=True, readonly=True, copy=False, default='waiting')
+    payment_state = fields.Selection(selection=[
+        ('new', 'New'), ('paid', 'Paid'),
+    ], string='Payment Status', required=True, readonly=True, copy=False, default='new')
+    account_payment_id = fields.Many2one(
+        comodel_name='account.payment', string='Payment', readonly=True, store=True)
+
+    def action_register_payment(self):
+        ''' Open the restaurant.payment.register wizard to pay the selected journal entries.
+        :return: An action opening the restaurant.payment.register wizard.
+        '''
+        return {
+            'name': _('Register Payment'),
+            'res_model': 'restaurant.payment.register',
+            'view_mode': 'form',
+            'context': {
+                'active_model': 'restaurant.payments',
+                'active_ids': self.ids,
+            },
+            'target': 'new',
+            'type': 'ir.actions.act_window',
+        }
 
     @api.depends('food_cost', 'adjust_amt', 'gst', 'commission_rate', 'revised_order_amount')
     def _compute_amount(self):
@@ -113,9 +137,9 @@ class RestaurantPayments(models.Model):
                 commission, quantity=1)
             commission_amt = commission_tax_details['total_excluded']
             commission_gst = commission_tax_details['total_included'] - commission_tax_details['total_excluded']
-            tcs_details = self.env.company.account_commission_tcs_tax_id.compute_all(
+            tcs_details = self.env.company.account_tcs_tax_id.compute_all(
                 record.revised_order_amount, quantity=1)
-            tds_details = self.env.company.account_commission_tds_tax_id.compute_all(
+            tds_details = self.env.company.account_tds_tax_id.compute_all(
                 record.revised_order_amount, quantity=1)
             tcs = tcs_details['total_included'] - tcs_details['total_excluded']
             tds = tds_details['total_included'] - tds_details['total_excluded']
@@ -144,5 +168,18 @@ class RestaurantPayments(models.Model):
             record.update({
                 'gst': gst
             })
+
+    def action_view_restaurant_payments(self):
+        payments = self.mapped('account_payment_id')
+        form_view = [(self.env.ref('account.view_account_payment_form').id, 'form')]
+        return {
+            'name': _('Register Payment'),
+            'res_model': 'account.payment',
+            'view_mode': 'form',
+            'res_id': payments.id,
+            'views': form_view,
+            'type': 'ir.actions.act_window',
+        }
+
 
 
