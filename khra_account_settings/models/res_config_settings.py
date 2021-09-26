@@ -55,8 +55,8 @@ class ResConfigSettings(models.TransientModel):
                                    readonly=False)
     commission_tax_id = fields.Many2one('account.tax', string="Default Commission Tax",
                                         related='company_id.account_commission_tax_id', readonly=False)
-    commission_tcs_tax_id = fields.Many2one('account.tax', string="Default Commission TCS Tax",
-                                        related='company_id.account_commission_tcs_tax_id', readonly=False)
-    commission_tds_tax_id = fields.Many2one('account.tax', string="Default Commission TDS Tax",
-                                            related='company_id.account_commission_tds_tax_id', readonly=False)
+    tcs_tax_id = fields.Many2one('account.tax', string="Default Restaurant TCS Tax",
+                                        related='company_id.account_tcs_tax_id', readonly=False)
+    tds_tax_id = fields.Many2one('account.tax', string="Default Restaurant TDS Tax",
+                                            related='company_id.account_tds_tax_id', readonly=False)
 

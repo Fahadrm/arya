@@ -333,15 +333,15 @@
                             </div>
                         </div>
                         <div class="col-12 col-lg-6 o_setting_box"
-                             id="yelo_commission_tcs_tax">
+                             id="yelo_restaurant_tcs_tax">
                             <div class="o_setting_left_pane"/>
                             <div class="o_setting_right_pane">
-                                <span class="o_form_label">Commission TCS Tax</span>
+                                <span class="o_form_label">Restaurant TCS Tax</span>
                                 <div class="content-group">
                                     <div class="row mt16">
-                                        <label string="Commission TCS Tax" for="commission_tcs_tax_id"
+                                        <label string="Restaurant TCS Tax" for="tcs_tax_id"
                                                class="col-lg-3 o_light_label"/>
-                                        <field name="commission_tcs_tax_id"
+                                        <field name="tcs_tax_id"
                                                domain="[('type_tax_use', 'in', ('sale', 'all')), ('company_id', '=', company_id)]"/>
                                     </div>
 
@@ -349,15 +349,15 @@
                             </div>
                         </div>
                         <div class="col-12 col-lg-6 o_setting_box"
-                             id="yelo_commission_tds_tax">
+                             id="yelo_restaurant_tds_tax">
                             <div class="o_setting_left_pane"/>
                             <div class="o_setting_right_pane">
-                                <span class="o_form_label">Commission TDS Tax</span>
+                                <span class="o_form_label">Restaurant TDS Tax</span>
                                 <div class="content-group">
                                     <div class="row mt16">
-                                        <label string="Commission TDS Tax" for="commission_tds_tax_id"
+                                        <label string="Restaurant TDS Tax" for="tds_tax_id"
                                                class="col-lg-3 o_light_label"/>
-                                        <field name="commission_tds_tax_id"
+                                        <field name="tds_tax_id"
                                                domain="[('type_tax_use', 'in', ('sale', 'all')), ('company_id', '=', company_id)]"/>
                                     </div>
 
