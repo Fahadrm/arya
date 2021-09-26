@@ -19,7 +19,7 @@
     'version': '14.0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'mail', 'account', 'khra_account_settings'],
+    'depends': ['base', 'mail', 'account', ],
 
     # always loaded
     'data': [
